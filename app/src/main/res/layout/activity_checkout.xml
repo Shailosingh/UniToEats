@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"/>
+
+    <include
+        layout="@layout/recyclerview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/totalPrice" />
+
+    <TextView
+        android:id="@+id/totalPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:layout_marginLeft="20dp"
+        android:text="@string/total_price"
+        android:layout_centerInParent="true"
+        android:layout_alignParentLeft="true"
+        />
+
+    <Button
+        android:id="@+id/placeOrderbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="4dp"
+        android:text="@string/place_order"
+        />
+
+</RelativeLayout>

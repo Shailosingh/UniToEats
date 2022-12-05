@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">UniToEats</string>
+
+    <string name="login_message">Login</string>
+    <string name="password_message">Password</string>
+    <string name="empty_user">Empty userID</string>
+    <string name="invalid_user">Invalid userID</string>
+    <string name="invalid_password">Empty password</string>
+
+    <string name="checkout">Go to Checkout</string>
+    <string name="place_order">Place Order</string>
+    <string name="total_price">Total</string>
 </resources>
