@@ -12,27 +12,30 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class OrdersActivity extends AppCompatActivity implements MyRecyclerViewAdapter.ItemClickListener {
     protected static final String ACTIVITY_NAME = "OrdersActivity";
     MyRecyclerViewAdapter adapter;
-    ArrayList<String> orders;
+    ArrayList<Object> orders;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.recyclerview);
-
+        setContentView(R.layout.activity_orders);
+        String user;
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         ImageView info = findViewById(R.id.info);
         info.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 AlertDialog.Builder builder = new AlertDialog.Builder(OrdersActivity.this);
                 // Set the message show for the Alert time
-                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh?\n - Alex Lau\n - Tatiana Olenciuc");
+                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh\n - Alex Lau\n - Christine Nguyen\n - Tatiana Olenciuc");
 
                 // Set Alert Title
                 builder.setTitle("Info");
@@ -49,19 +52,32 @@ public class OrdersActivity extends AppCompatActivity implements MyRecyclerViewA
             }
         });
 
+        Log.d(ACTIVITY_NAME, "BEFORE");
         // data to populate the RecyclerView with
-        orders = new ArrayList<>();
+        DatabaseHelper.retrieveAllUserOrders(RestaurantActivity.user, new DatabaseCallback() {
+            @Override
+            public void onSuccess(Object orderListObj) {
+                Log.d(ACTIVITY_NAME, "AFTER");
 
-        // TODO retrieve users orders from database
-        for(int i = 0; i < 15; i++){
-            orders.add("Order " + Integer.toString(i));
-        }
-        // set up the RecyclerView using the MENU type
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MyRecyclerViewAdapter(this, orders, MyRecyclerViewAdapter.Type.ORDERS);
-        adapter.setClickListener(this);
-        recyclerView.setAdapter(adapter);
+                List<Object> orderList = ArrayList.class.cast(orderListObj);
+
+                Log.d(ACTIVITY_NAME, Integer.toString(orderList.size()));
+                // set up the RecyclerView using the MENU type
+                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+                recyclerView.setLayoutManager(new LinearLayoutManager(OrdersActivity.this));
+                adapter = new MyRecyclerViewAdapter(OrdersActivity.this, orderList, MyRecyclerViewAdapter.Type.ORDERS);
+                adapter.setClickListener(OrdersActivity.this);
+                recyclerView.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.w(ACTIVITY_NAME, "Error Retrieving Database", e);
+            }
+        });
+
+
+
     }
     protected void onResume() {
         super.onResume();
@@ -87,6 +103,7 @@ public class OrdersActivity extends AppCompatActivity implements MyRecyclerViewA
     @Override
     public void onItemClick(View view, int position) {
         Intent intent = new Intent(OrdersActivity.this, OrderActivity.class);
+        intent.putExtra("orderID", Order.class.cast(adapter.getItem(position)).getOrderID());
         startActivityForResult(intent,10);
     }
 }

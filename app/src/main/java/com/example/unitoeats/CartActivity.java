@@ -22,10 +22,8 @@ public class CartActivity extends AppCompatActivity implements MyRecyclerViewAda
 
     String ACTIVITY_NAME = "CartActivity";
     MyRecyclerViewAdapter adapter;
-    ArrayList<String> itemsSelected;
+    ArrayList<Object> itemsSelected;
     RecyclerView recyclerView;
-    ArrayList<String> cartItems;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +43,7 @@ public class CartActivity extends AppCompatActivity implements MyRecyclerViewAda
                 // TODO make a dialog box
                 AlertDialog.Builder builder = new AlertDialog.Builder(CartActivity.this);
                 // Set the message show for the Alert time
-                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh?\n - Alex Lau\n - Tatiana Olenciuc");
+                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh\n - Alex Lau\n - Christine Nguyen\n - Tatiana Olenciuc");
 
                 // Set Alert Title
                 builder.setTitle("Info");
@@ -62,18 +60,13 @@ public class CartActivity extends AppCompatActivity implements MyRecyclerViewAda
                 alertDialog.show();
             }
         });
+        Log.i(ACTIVITY_NAME, "USER ID: " + RestaurantActivity.user);
+
 
         // Get the items selected from the menu
-        if (savedInstanceState == null) {
-            Bundle extras = getIntent().getExtras();
-            if(extras == null) {
-                itemsSelected = null;
-            } else {
-                itemsSelected = extras.getStringArrayList("items");
-            }
-        } else {
-            itemsSelected = (ArrayList<String>) savedInstanceState.getSerializable("Restaurant");
-        }
+        Intent intent = getIntent();
+        Bundle args = intent.getBundleExtra("BUNDLE");
+        itemsSelected = (ArrayList<Object>) args.getSerializable("ARRAYLIST");
 
 
         // set up the RecyclerView using the MENU type
@@ -82,6 +75,21 @@ public class CartActivity extends AppCompatActivity implements MyRecyclerViewAda
         adapter = new MyRecyclerViewAdapter(this, itemsSelected, MyRecyclerViewAdapter.Type.MENU);
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
+
+        findViewById(R.id.checkoutbtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(itemsSelected.size() > 0) {
+                    Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
+                    intent.putExtra("items", itemsSelected);
+                    startActivity(intent);
+                }
+                else{
+                    Toast.makeText(CartActivity.this, "Your cart is empty.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
     }
     protected void onResume() {
         super.onResume();
@@ -113,7 +121,7 @@ public class CartActivity extends AppCompatActivity implements MyRecyclerViewAda
         recyclerView.setAdapter(adapter);
 
         Intent data = new Intent();
-        data.putStringArrayListExtra("items", itemsSelected);
+        data.putExtra("items", itemsSelected);
         setResult(RESULT_OK, data);
 
 //        Toast.makeText(this, "You clicked " + adapter.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();

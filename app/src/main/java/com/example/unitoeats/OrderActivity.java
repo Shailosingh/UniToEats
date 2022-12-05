@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class OrderActivity extends AppCompatActivity implements MyRecyclerViewAdapter.ItemClickListener {
 
@@ -25,10 +26,11 @@ public class OrderActivity extends AppCompatActivity implements MyRecyclerViewAd
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.recyclerview);
-
+        setContentView(R.layout.activity_order);
+        String orderID;
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         itemsSelected = new ArrayList<>();
 
@@ -38,7 +40,7 @@ public class OrderActivity extends AppCompatActivity implements MyRecyclerViewAd
             public void onClick(View v){
                 AlertDialog.Builder builder = new AlertDialog.Builder(OrderActivity.this);
                 // Set the message show for the Alert time
-                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh?\n - Alex Lau\n - Tatiana Olenciuc");
+                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh\n - Alex Lau\n - Christine Nguyen\n - Tatiana Olenciuc");
 
                 // Set Alert Title
                 builder.setTitle("Info");
@@ -55,19 +57,42 @@ public class OrderActivity extends AppCompatActivity implements MyRecyclerViewAd
             }
         });
 
-        // data to populate the RecyclerView with
-        ArrayList<String> orderItems = new ArrayList<>();
-
-        // TODO retrieve order items from database
-        for(int i = 0; i < 5; i++){
-            orderItems.add("Food "+ Integer.toString(i));
+        // Get the order ID
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                orderID = null;
+            } else {
+                orderID = extras.getString("orderID");
+            }
+        } else {
+            orderID = (String) savedInstanceState.getSerializable("orderID");
         }
-        // set up the RecyclerView using the MENU type
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MyRecyclerViewAdapter(this, orderItems, MyRecyclerViewAdapter.Type.MENU);
-        adapter.setClickListener(this);
-        recyclerView.setAdapter(adapter);
+
+
+
+        DatabaseHelper.retrieveOrder(orderID, new DatabaseCallback() {
+            @Override
+            public void onSuccess(Object orderObj) {
+                Order retrievedOrder = Order.class.cast(orderObj);
+                List<Item> orderItems = Order.class.cast(retrievedOrder).getItemList();
+                List<Object> objItems = new ArrayList<>();
+                for (Item currItem : orderItems) {
+                    objItems.add(Object.class.cast(currItem));
+                }
+                // set up the RecyclerView using the MENU type
+                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+                recyclerView.setLayoutManager(new LinearLayoutManager(OrderActivity.this));
+                adapter = new MyRecyclerViewAdapter(OrderActivity.this, objItems, MyRecyclerViewAdapter.Type.MENU);
+                adapter.setClickListener(OrderActivity.this);
+                recyclerView.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.w(ACTIVITY_NAME, "Error Retrieving Database", e);
+            }
+        });
     }
     protected void onResume() {
         super.onResume();
@@ -92,6 +117,6 @@ public class OrderActivity extends AppCompatActivity implements MyRecyclerViewAd
 
     @Override
     public void onItemClick(View view, int position) {
-        Toast.makeText(this, "HELLO", Toast.LENGTH_SHORT).show();
+        Log.i(ACTIVITY_NAME, "Selected " + Integer.toString(position) + " order.");
     }
 }

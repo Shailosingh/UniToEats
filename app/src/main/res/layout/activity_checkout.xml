@@ -8,31 +8,36 @@
         android:id="@+id/toolbar"
         layout="@layout/toolbar"/>
 
-    <include
-        layout="@layout/recyclerview"
-        android:layout_width="wrap_content"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/totalPrice" />
+        android:layout_above="@+id/totalPrice"
+        android:layout_below="@id/toolbar">
+    </androidx.recyclerview.widget.RecyclerView>
 
     <TextView
         android:id="@+id/totalPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20dp"
-        android:layout_marginLeft="20dp"
-        android:text="@string/total_price"
+        android:layout_alignTop="@id/placeOrderbtn"
+        android:layout_alignBottom="@id/placeOrderbtn"
+        android:layout_alignParentStart="true"
         android:layout_centerInParent="true"
-        android:layout_alignParentLeft="true"
-        />
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_toStartOf="@id/placeOrderbtn"
+        android:gravity="center_vertical"
+        android:text="@string/total_price"
+        android:textSize="20sp" />
 
     <Button
         android:id="@+id/placeOrderbtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_marginEnd="4dp"
-        android:text="@string/place_order"
-        />
+        android:text="@string/place_order" />
 
 </RelativeLayout>

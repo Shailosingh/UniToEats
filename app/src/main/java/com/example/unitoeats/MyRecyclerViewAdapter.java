@@ -1,6 +1,10 @@
 package com.example.unitoeats;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 
@@ -9,53 +13,60 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
-
+    String ACTIVITY_NAME = "MyRecyclerViewAdapter";
     enum Type {
         MENU,
         RESTAURANT,
-        ORDERS
+        ORDERS,
+        CHECKOUT
     }
 
-    private List<String> mData;
-    private LayoutInflater mInflater;
+    private List<Object> data;
+    private LayoutInflater inflater;
     private Type type;
-    private ItemClickListener mClickListener;
+    private ItemClickListener clickListener;
 
-    // data is passed into the constructor
-    MyRecyclerViewAdapter(Context context, List<String> data, Type type) {
-        this.mInflater = LayoutInflater.from(context);
-        this.mData = data;
+    // constructor
+    MyRecyclerViewAdapter(Context context, List<Object> data, Type type) {
+        this.inflater = LayoutInflater.from(context);
+        this.data = data;
         this.type = type;
     }
 
-    // inflates the row layout from xml when needed
+    // inflates the row layout from xml
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
-        Log.i("RECYCLEADAPTER", this.type.toString());
+        Log.i(ACTIVITY_NAME, this.type.toString());
 
         if(this.type == Type.MENU){
-            view = mInflater.inflate(R.layout.recyclerview_menu, parent, false);
-            Log.i("RECYCLEADAPTER", "INSIDE MENU");
-
+            view = inflater.inflate(R.layout.recyclerview_menu, parent, false);
+            Log.i(ACTIVITY_NAME, "INSIDE MENU");
         }
         else if(this.type == Type.ORDERS){
-            Log.i("RECYCLEADAPTER", "INSIDE ORDERS");
-            view = mInflater.inflate(R.layout.recyclerview_orders, parent, false);
+            Log.i(ACTIVITY_NAME, "INSIDE ORDERS");
+            view = inflater.inflate(R.layout.recyclerview_orders, parent, false);
         }
         else if(this.type == Type.RESTAURANT){
-            Log.i("RECYCLEADAPTER", "INSIDE RESTAURNT");
-            view = mInflater.inflate(R.layout.recyclerview_restaurants, parent, false);
+            Log.i(ACTIVITY_NAME, "INSIDE RESTAURANT");
+            view = inflater.inflate(R.layout.recyclerview_restaurants, parent, false);
+        }
+        else if(this.type == Type.CHECKOUT){
+            Log.i(ACTIVITY_NAME, "INSIDE CHECKOUT");
+            view = inflater.inflate(R.layout.recyclerview_checkout, parent, false);
         }
         else {
-            Log.i("RECYCLEADAPTER", "INSIDE ELSE");
-
-            view = mInflater.inflate(R.layout.recyclerview_restaurants, parent, false);
+            Log.i(ACTIVITY_NAME, "INSIDE ELSE");
+            view = inflater.inflate(R.layout.recyclerview_restaurants, parent, false);
         }
 
         return new ViewHolder(view);
@@ -64,45 +75,108 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String animal = mData.get(position);
-        holder.myTextView.setText(animal);
+        if(this.type == Type.MENU){
+            Log.i(ACTIVITY_NAME, "INSIDE MENU");
+            Item i = Item.class.cast(data.get(position));
+            holder.myTextView.setText(i.getName());
+            holder.myPriceView.setText(String.format("$%1$.2f" , i.getCost()));
+            new LoadImageFromWeb(holder.myImageView)
+                    .execute(i.getPhotoLink());
+        }
+        else if(this.type == Type.ORDERS){
+            Log.i(ACTIVITY_NAME, "INSIDE ORDERS");
+            String item = Order.class.cast(data.get(position)).getRestaurantID();
+            holder.myTimeView.setText(Order.class.cast(data.get(position)).getLocalDateTime());
+            holder.myTextView.setText(item);
+        }
+        else if(this.type == Type.RESTAURANT){
+            Log.i(ACTIVITY_NAME, "INSIDE RESTAURANT");
+            Restaurant i = Restaurant.class.cast(data.get(position));
+            String item = i.getName();
+            holder.myTextView.setText(item);
+            new LoadImageFromWeb(holder.myImageView)
+                    .execute(i.getPhotoLink());
+        }
+        else if(this.type == Type.CHECKOUT){
+            Log.i(ACTIVITY_NAME, "INSIDE CHECKOUT");
+            Item i = Item.class.cast(data.get(position));
+            holder.myTextView.setText(i.getName());
+            holder.myPriceView.setText(String.format("$%1$.2f" , i.getCost()));
+        }
+        else {
+            Log.i(ACTIVITY_NAME, "INSIDE ELSE");
+            Restaurant i = Restaurant.class.cast(data.get(position));
+            String item = i.getName();
+            holder.myTextView.setText(item);
+            new LoadImageFromWeb(holder.myImageView)
+                    .execute(i.getPhotoLink());
+        }
+
     }
 
-    // total number of rows
+    // gets the amount of items in the list view
     @Override
     public int getItemCount() {
-        return mData.size();
+        return data.size();
     }
 
 
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView myTextView;
+        ImageView myImageView;
+        TextView myPriceView;
+        TextView myTimeView;
 
         ViewHolder(View itemView) {
             super(itemView);
             myTextView = itemView.findViewById(R.id.item);
+            myImageView = itemView.findViewById(R.id.ImageView);
+            myPriceView = itemView.findViewById(R.id.price);
+            myTimeView = itemView.findViewById(R.id.timeTextView);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
+            if (clickListener != null) clickListener.onItemClick(view, getAdapterPosition());
         }
     }
 
-    // convenience method for getting data at click position
-    String getItem(int id) {
-        return mData.get(id);
+    // gets the data at the entry index 'id'
+    Object getItem(int id) {
+        return data.get(id);
     }
 
-    // allows clicks events to be caught
+    // sets the clicklistener to all items
     void setClickListener(ItemClickListener itemClickListener) {
-        this.mClickListener = itemClickListener;
+        this.clickListener = itemClickListener;
     }
 
     // parent activity will implement this method to respond to click events
     public interface ItemClickListener {
         void onItemClick(View view, int position);
+    }
+
+    private class LoadImageFromWeb extends AsyncTask<String, Void, Bitmap> {
+        String CLASS_NAME = "LoadImageFromWeb";
+        ImageView img;
+        public LoadImageFromWeb(ImageView bmImage) {
+            this.img = bmImage;
+        }
+        protected Bitmap doInBackground(String... urls) {
+            String url = urls[0];
+            Bitmap icon = null;
+            try {
+                InputStream in = new java.net.URL(url).openStream();
+                icon = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e(CLASS_NAME, e.getMessage());
+            }
+            return icon;
+        }
+        protected void onPostExecute(Bitmap result) {
+            img.setImageBitmap(result);
+        }
     }
 }

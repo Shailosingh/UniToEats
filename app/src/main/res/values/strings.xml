@@ -6,8 +6,14 @@
     <string name="empty_user">Empty userID</string>
     <string name="invalid_user">Invalid userID</string>
     <string name="invalid_password">Empty password</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="user_ID">User ID</string>
 
     <string name="checkout">Go to Checkout</string>
     <string name="place_order">Place Order</string>
-    <string name="total_price">Total</string>
+    <string name="total_price">Total: </string>
+    <string name="return_main_menu">Return to Main Menu</string>
+    <string name="order_placed">Your order has been placed.</string>
+    <string name="pickupTime">Pick up time: </string>
+
 </resources>

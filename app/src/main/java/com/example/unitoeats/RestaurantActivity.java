@@ -15,15 +15,16 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RestaurantActivity extends AppCompatActivity implements MyRecyclerViewAdapter.ItemClickListener {
     protected static final String ACTIVITY_NAME = "RestaurantActivity";
     MyRecyclerViewAdapter adapter;
-    ArrayList<String> restaurants;
+    public static String user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.recyclerview);
+        setContentView(R.layout.activity_restaurant);
         
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -36,7 +37,7 @@ public class RestaurantActivity extends AppCompatActivity implements MyRecyclerV
                 // TODO make a dialog box
                 AlertDialog.Builder builder = new AlertDialog.Builder(RestaurantActivity.this);
                 // Set the message show for the Alert time
-                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh?\n - Alex Lau\n - Tatiana Olenciuc");
+                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh\n - Alex Lau\n - Christine Nguyen\n - Tatiana Olenciuc");
 
                 // Set Alert Title
                 builder.setTitle("Info");
@@ -53,6 +54,19 @@ public class RestaurantActivity extends AppCompatActivity implements MyRecyclerV
                 alertDialog.show();
             }
         });
+
+        // Get the user
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                user = null;
+            } else {
+                user = extras.getString("User");
+            }
+        } else {
+            user = (String) savedInstanceState.getSerializable("User");
+        }
+
         orders.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -61,18 +75,33 @@ public class RestaurantActivity extends AppCompatActivity implements MyRecyclerV
             }
         });
 
-        // TODO retrieve restaurants from database and populate list
-        restaurants = new ArrayList<>();
-        for(int i = 0; i < 15; i++){
-            restaurants.add("restaurant " + Integer.toString(i));
-        }
 
-        // set up the RecyclerView using the MENU type
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MyRecyclerViewAdapter(this, restaurants, MyRecyclerViewAdapter.Type.RESTAURANT);
-        adapter.setClickListener(this);
-        recyclerView.setAdapter(adapter);
+
+        // TODO retrieve restaurants from database and populate list
+        DatabaseHelper.retrieveAllRestaurants(new DatabaseCallback()
+        {
+            @Override
+            public void onSuccess(Object listOfRestaurantsObj)
+            {
+                List<Object> restaurantList = ArrayList.class.cast(listOfRestaurantsObj);
+
+                Log.d(ACTIVITY_NAME, Integer.toString(restaurantList.size()));
+                // set up the RecyclerView using the MENU type
+                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+                recyclerView.setLayoutManager(new LinearLayoutManager(RestaurantActivity.this));
+                adapter = new MyRecyclerViewAdapter(RestaurantActivity.this, restaurantList, MyRecyclerViewAdapter.Type.RESTAURANT);
+                adapter.setClickListener(RestaurantActivity.this);
+                recyclerView.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(Exception e)
+            {
+                Log.w(ACTIVITY_NAME, "Error getting all restaurants", e);
+            }
+        });
+
+
     }
     protected void onResume() {
         super.onResume();
@@ -97,10 +126,8 @@ public class RestaurantActivity extends AppCompatActivity implements MyRecyclerV
 
     @Override
     public void onItemClick(View view, int position) {
-        // TODO based on the restaurant picked launch with different menu items
-        Toast.makeText(this, "You clicked " + adapter.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(RestaurantActivity.this, MenuActivity.class);
-        intent.putExtra("Restaurant", adapter.getItem(position));
+        intent.putExtra("Restaurant", Restaurant.class.cast(adapter.getItem(position)).getId());
         startActivityForResult(intent,10);
     }
 }

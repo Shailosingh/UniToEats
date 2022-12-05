@@ -21,7 +21,7 @@ public class User
         this.fullName = fullName;
         this.id = id;
         this.password = password;
-        this.isAdmin = false;
+        this.isAdmin = isAdmin;
         pendingOrderIDs = new ArrayList<>();
         restaurantIDs = new ArrayList<>();
     }
@@ -30,6 +30,7 @@ public class User
     {
         return fullName;
     }
+
     public String getId()
     {
         return id;

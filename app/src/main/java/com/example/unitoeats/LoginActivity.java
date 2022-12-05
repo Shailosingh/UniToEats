@@ -76,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
         String user = userEdit.getText().toString();
         String password = passwordEdit.getText().toString();
 
-        //Gives toast if email is invalid
+        //Gives toast if id is invalid
         if (user.isEmpty()) {
             Toast.makeText(this,R.string.empty_user, Toast.LENGTH_LONG).show();
             return;
@@ -102,9 +102,40 @@ public class LoginActivity extends AppCompatActivity {
             editor.clear();
             editor.commit();
         }
-        Intent intent = new Intent(LoginActivity.this, RestaurantActivity.class);
-        startActivity(intent);
-        LoginActivity.this.finish();
+
+        DatabaseHelper.retrieveUser(user, new DatabaseCallback()
+        {
+            @Override
+            public void onSuccess(Object retrievedUser)
+            {
+                if(retrievedUser != null)
+                {
+                    Log.d(ACTIVITY_NAME, String.format("Retrieved User: %s", User.class.cast(retrievedUser).getFullName()));
+                    String correctPass = User.class.cast(retrievedUser).getPassword();
+                    if(password.equals(correctPass)) {
+                        Intent intent = new Intent(LoginActivity.this, RestaurantActivity.class);
+                        intent.putExtra("User", user);
+                        startActivity(intent);
+                        LoginActivity.this.finish();
+                    }
+                    else{
+                        Snackbar.make(findViewById(R.id.loginButton),"Incorrect Password.", Snackbar.LENGTH_LONG).show();
+                    }
+                }
+                else{
+                    Snackbar.make(findViewById(R.id.loginButton),"User not found.", Snackbar.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e)
+            {
+                Log.w(ACTIVITY_NAME, "Database Error", e);
+            }
+        });
+
+
+
     }
 
 }

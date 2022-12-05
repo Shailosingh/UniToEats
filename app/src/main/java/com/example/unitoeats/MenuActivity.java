@@ -17,14 +17,17 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAdapter.ItemClickListener {
 
     String ACTIVITY_NAME = "MenuActivity";
+    public static String restaurantID;
 
     MyRecyclerViewAdapter adapter;
-    ArrayList<String> itemsSelected;
+    ArrayList<Item> itemsSelected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +45,9 @@ public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAda
         info.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // TODO make a dialog box
                 AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
                 // Set the message show for the Alert time
-                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh?\n - Alex Lau\n - Tatiana Olenciuc");
+                builder.setMessage("This app was made by:\n - Riley Huston\n - Shailendra Singh\n - Alex Lau\n - Christine Nguyen\n - Tatiana Olenciuc");
 
                 // Set Alert Title
                 builder.setTitle("Info");
@@ -65,10 +67,15 @@ public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAda
             @Override
             public void onClick(View v){
                 // TODO start orders activity with array of menu items selected
-                Toast.makeText(MenuActivity.this, "CART", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(MenuActivity.this, CartActivity.class);
-                intent.putStringArrayListExtra("items", itemsSelected);
+
+                Bundle args = new Bundle();
+                args.putSerializable("ARRAYLIST",(Serializable)itemsSelected);
+                intent.putExtra("BUNDLE",args);
+//                startActivity(intent);
+//
+//                intent.putExtra("Items", itemsSelected);
                 startActivityForResult(intent,10);
             }
         });
@@ -76,31 +83,48 @@ public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAda
 
 
         // Get the restaurant that was clicked
-        String restaurant;
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
             if(extras == null) {
-                restaurant= null;
+                restaurantID= null;
             } else {
-                restaurant= extras.getString("Restaurant");
+                restaurantID= extras.getString("Restaurant");
             }
         } else {
-            restaurant= (String) savedInstanceState.getSerializable("Restaurant");
+            restaurantID= (String) savedInstanceState.getSerializable("Restaurant");
         }
+        Log.i(ACTIVITY_NAME, "restaurntDI: " +restaurantID );
+        DatabaseHelper.retrieveRestaurant(restaurantID, new DatabaseCallback()
+        {
+            @Override
+            public void onSuccess(Object retrievedRestaurant)
+            {
+                if(retrievedRestaurant != null)
+                {
+                    Log.w(ACTIVITY_NAME, "bloop");
+                    List<Item> menuItems = Restaurant.class.cast(retrievedRestaurant).getMenu().getItems();
+                    List<Object> objItems = new ArrayList<>();
+                    for(Item currItem : menuItems){
+                        objItems.add(Object.class.cast(currItem));
+                    }
+                    // set up the RecyclerView using the MENU type
+                    RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(MenuActivity.this));
+                    adapter = new MyRecyclerViewAdapter(MenuActivity.this, objItems, MyRecyclerViewAdapter.Type.MENU);
+                    adapter.setClickListener(MenuActivity.this);
+                    recyclerView.setAdapter(adapter);
 
-        // data to populate the RecyclerView with
-        ArrayList<String> menuItems = new ArrayList<>();
+                }
+            }
 
-        // TODO retrieve menu items based on restaurant from database and populate list
-        for(int i = 0; i < 15; i++){
-            menuItems.add("Food "+ Integer.toString(i) + ", " + restaurant);
-        }
-        // set up the RecyclerView using the MENU type
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MyRecyclerViewAdapter(this, menuItems, MyRecyclerViewAdapter.Type.MENU);
-        adapter.setClickListener(this);
-        recyclerView.setAdapter(adapter);
+            @Override
+            public void onFailure(Exception e)
+            {
+                Log.w(ACTIVITY_NAME, "Error Retrieving Restaurant", e);
+            }
+        });
+
+
     }
     protected void onResume() {
         super.onResume();
@@ -125,7 +149,7 @@ public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAda
 
     @Override
     public void onItemClick(View view, int position) {
-        itemsSelected.add(adapter.getItem(position));
+        itemsSelected.add(Item.class.cast(adapter.getItem(position)));
         Toast.makeText(this, "Added to Cart", Toast.LENGTH_SHORT).show();
     }
     @Override
@@ -133,7 +157,7 @@ public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAda
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             Log.i(ACTIVITY_NAME,"in result");
-            itemsSelected = data.getStringArrayListExtra("items");
+            itemsSelected = (ArrayList<Item>) data.getSerializableExtra("items");
         }
     }
 }
