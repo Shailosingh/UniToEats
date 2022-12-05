@@ -30,6 +30,9 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         Log.i(ACTIVITY_NAME, "In onCreate()");
@@ -94,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         if(remember.isChecked()){
             editor.putBoolean("saveLogin", true);
-            editor.putString("user", user);
+            editor.putString("username", user);
             editor.putString("password", password);
             editor.commit();
 

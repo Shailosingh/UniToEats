@@ -113,7 +113,6 @@ public class MenuActivity extends AppCompatActivity implements MyRecyclerViewAda
                     adapter = new MyRecyclerViewAdapter(MenuActivity.this, objItems, MyRecyclerViewAdapter.Type.MENU);
                     adapter.setClickListener(MenuActivity.this);
                     recyclerView.setAdapter(adapter);
-
                 }
             }
 

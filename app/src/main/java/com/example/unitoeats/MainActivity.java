@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         User admin = new User("190777790", "blahblah", "Shailendra Singh", true);
+        User admin2 = new User("190954880", "password", "Riley Huston", true);
         User plebian = new User("190786790", "1234", "Alex Lau", false);
 
         /*
